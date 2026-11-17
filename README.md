@@ -1,62 +1,49 @@
-# 🏛️ Député virtuel
+# Député virtuel
 
-Démo d'application qui permet de **voter les lois**, avec un **workflow assisté par IA** : chaque proposition de loi peut être résumée par l'IA avant le vote.
+Pipeline d'extraction et de vérification des propositions de loi et amendements
+de l'Assemblée nationale (open data), avec validation de compréhension par
+questions/réponses.
 
-## Lancer le projet
+**Philosophie : comprendre avant de débattre.**
 
-Prérequis : Node.js (aucune dépendance à installer).
+## Pourquoi ce projet
 
-```bash
-npm start
-```
+Chaque texte de loi peut être compris et débattu par n'importe qui, à
+condition d'en avoir lu le contenu. Ce pipeline extrait, structure et
+vérifie automatiquement les documents législatifs issus de
+[data.assemblee-nationale.fr](https://data.assemblee-nationale.fr/), puis
+génère des questions de compréhension sur chaque texte.
 
-Puis ouvrir <http://localhost:3000>.
+## Pipeline
 
-La variable d'environnement `PORT` permet de changer le port (3000 par défaut).
+1. **Ingestion** : téléchargement des jeux open data AN (XML/JSON), cache local.
+2. **Extraction** : structuration LLM (articles, signataires, dispositif des amendements).
+3. **Vérification** : règles de cohérence en code pur (zéro LLM).
+4. **RAG** : recherche sémantique sur le corpus (pgvector).
+5. **Compréhension** : génération de questions sur un texte + évaluation des réponses.
 
-## Structure
+Le LLM extrait, le code vérifie. Aucune règle métier ne repose sur un LLM.
 
-```
-├── index.html           Front-end (HTML/CSS/JS vanilla, servi à la racine)
-├── style.css
-├── app.js
-├── server.js            Serveur zero-dependency (statique + API JSON)
-├── data/lois.json       Propositions de loi de la démo
-└── docs/workflow-ia.md  Description du workflow IA de la démo
-```
+## Dossier pilote
 
-## Version en ligne (GitHub Pages)
+- Principal : PDL « travailler le 1er mai » (dossier AN n° DLR5L17N51987).
+- Second corpus d'évaluation : PDL « médecins diplômés au Royaume-Uni avant le Brexit ».
 
-Le site statique est publié via GitHub Pages depuis la branche `main` :
-<https://onenapprenddeschoses.github.io/depute-virtuel/>
+## Métriques
 
-Sans serveur Node, l'app fonctionne en mode statique : les lois sont lues dans
-`data/lois.json`, les votes sont stockés dans le `localStorage` du navigateur et
-le résumé « IA » est généré localement. Avec `npm start`, l'API serveur est
-utilisée à la place (votes communs à tous les visiteurs, remis à zéro au
-redémarrage).
+(Taux d'erreur d'extraction et faux positifs de vérification : voir `eval/reports/`.
+À remplir après le premier run d'évaluation.)
 
-## API
-
-| Méthode | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/lois` | Liste des lois avec le décompte des votes |
-| POST | `/api/lois/:id/vote` | Vote : body `{ "choix": "pour" \| "contre" \| "abstention" }` |
-| GET | `/api/lois/:id/resume-ia` | Résumé « IA » de la loi (simulé dans le starter kit) |
-
-Exemple :
+## Lancement
 
 ```bash
-curl -X POST http://localhost:3000/api/lois/loi-semaine-32h/vote \
-  -H 'Content-Type: application/json' \
-  -d '{"choix": "pour"}'
+docker compose up -d        # postgres + api
+make dev                    # ou: uv run uvicorn src.depute.api.main:app --reload
+make eval                   # run d'évaluation
 ```
 
-## Workflow IA
+## Périmètre
 
-Voir [docs/workflow-ia.md](docs/workflow-ia.md). Le starter kit simule la réponse de l'IA ; le doc explique comment brancher un vrai modèle (clé d'API uniquement via variable d'environnement, jamais dans le code).
-
-## Notes
-
-- Les lois proposées sont fictives et servent uniquement à la démo.
-- Avec le serveur Node, les votes sont stockés en mémoire : ils sont remis à zéro à chaque redémarrage du serveur.
+Ceci est une démonstration technique, pas une plateforme. Pas de comptes
+utilisateurs, pas de votes. Neutralité politique : extraction et
+structuration de documents uniquement, aucune prise de position.

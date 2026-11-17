@@ -1,0 +1,19 @@
+name: Evaluation
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"   # chaque nuit, coûts LLM maîtrisés
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    env:
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --dev
+      - run: uv run python eval/run_eval.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval/reports/

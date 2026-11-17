@@ -1,5 +1,10 @@
-node_modules/
-*.log
+__pycache__/
+*.pyc
+.venv/
 .env
-.env.*
-!.env.example
+data/
+*.egg-info/
+.pytest_cache/
+.ruff_cache
+eval/reports/*.json
+!eval/reports/.gitkeep
