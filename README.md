@@ -17,14 +17,24 @@ La variable d'environnement `PORT` permet de changer le port (3000 par défaut).
 ## Structure
 
 ```
+├── index.html           Front-end (HTML/CSS/JS vanilla, servi à la racine)
+├── style.css
+├── app.js
 ├── server.js            Serveur zero-dependency (statique + API JSON)
 ├── data/lois.json       Propositions de loi de la démo
-├── public/              Front-end (HTML/CSS/JS vanilla)
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
 └── docs/workflow-ia.md  Description du workflow IA de la démo
 ```
+
+## Version en ligne (GitHub Pages)
+
+Le site statique est publié via GitHub Pages depuis la branche `main` :
+<https://onenapprenddeschoses.github.io/depute-virtuel/>
+
+Sans serveur Node, l'app fonctionne en mode statique : les lois sont lues dans
+`data/lois.json`, les votes sont stockés dans le `localStorage` du navigateur et
+le résumé « IA » est généré localement. Avec `npm start`, l'API serveur est
+utilisée à la place (votes communs à tous les visiteurs, remis à zéro au
+redémarrage).
 
 ## API
 
@@ -49,4 +59,4 @@ Voir [docs/workflow-ia.md](docs/workflow-ia.md). Le starter kit simule la répon
 ## Notes
 
 - Les lois proposées sont fictives et servent uniquement à la démo.
-- Les votes sont stockés en mémoire : ils sont remis à zéro à chaque redémarrage du serveur.
+- Avec le serveur Node, les votes sont stockés en mémoire : ils sont remis à zéro à chaque redémarrage du serveur.

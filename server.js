@@ -3,7 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = path.join(__dirname, 'public');
+const PUBLIC_DIR = __dirname;
+const FICHIERS_BLOQUES = new Set(['server.js', 'package.json', 'package-lock.json']);
 const LOIS = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'lois.json'), 'utf8'));
 
 const votes = {};
@@ -64,7 +65,11 @@ function loisAvecVotes() {
 function serveStatic(req, res, pathname) {
   const rel = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
   const filePath = path.join(PUBLIC_DIR, path.normalize(rel));
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  const bloque =
+    FICHIERS_BLOQUES.has(rel) ||
+    rel.startsWith('.') ||
+    rel.split('/').some((part) => part === '.git' || part === 'node_modules');
+  if (!filePath.startsWith(PUBLIC_DIR) || bloque) {
     res.writeHead(403);
     res.end('Interdit');
     return;
