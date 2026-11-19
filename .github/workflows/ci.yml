@@ -11,3 +11,8 @@ jobs:
       - run: uv sync --dev
       - run: uv run ruff check src tests eval
       - run: uv run pytest -q
+      # Advisory tant que mypy n'est pas ajouté en dev-dependency (voir AGENTS.md).
+      # Passer en bloquant : ajouter mypy au groupe dev, puis retirer continue-on-error.
+      - name: mypy (advisory)
+        run: uvx mypy src --ignore-missing-imports
+        continue-on-error: true

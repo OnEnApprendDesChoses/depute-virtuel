@@ -3,6 +3,12 @@
 language: fr-FR
 early_access: false
 
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - files: ".github/review/code-review.md"
+        applyTo: "**/*"
+
 reviews:
   profile: assertive
   high_level_summary: true
@@ -27,7 +33,7 @@ reviews:
         doit rester fonctionnel (règle d'interchangeabilité du repo).
     - path: src/depute/extraction/verification.py
       instructions: |
-        Ce module est 100% déterministe : zéro appel LLM, zéro hasard,
+        Ce module est 100 % déterministe : zéro appel LLM, zéro hasard,
         zéro réseau. Une PR qui y introduit un appel LLM doit être refusée.
     - path: mcp/server.py
       instructions: |
