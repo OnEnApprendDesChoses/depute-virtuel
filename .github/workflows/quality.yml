@@ -27,7 +27,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: >-
           docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3
-          git /repo --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --verbose
+          git /repo --log-opts="-m ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --verbose
       - name: Scan des secrets — snapshot du dépôt (push sur main)
         if: github.event_name == 'push'
         run: >-
