@@ -1,0 +1,51 @@
+# Configuration CodeRabbit — review automatique des PR.
+# Doc : https://docs.coderabbit.ai
+language: fr-FR
+early_access: false
+
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - files: ".github/review/code-review.md"
+        applyTo: "**/*"
+
+reviews:
+  profile: assertive
+  high_level_summary: true
+  review_status: true
+  commit_status: true
+  poem: false
+  path_filters:
+    - "!uv.lock"
+    - "!eval/reports/**"
+    - "!data/**"
+  path_instructions:
+    - path: src/depute/extraction/**
+      instructions: |
+        Vérification stricte : toute sortie LLM doit passer par
+        provider.complete_structured(...) avec un schéma pydantic v2
+        (ConfigDict(extra="forbid")). Pas de json.loads brut. temperature=0.
+        Un prompt modifié sans test golden sur fixtures réelles est bloquant.
+    - path: src/depute/llm/**
+      instructions: |
+        Aucun appel SDK LLM en dehors de ce dossier. Les imports du SDK
+        doivent rester différés dans les fonctions. AnthropicProvider
+        doit rester fonctionnel (règle d'interchangeabilité du repo).
+    - path: src/depute/extraction/verification.py
+      instructions: |
+        Ce module est 100 % déterministe : zéro appel LLM, zéro hasard,
+        zéro réseau. Une PR qui y introduit un appel LLM doit être refusée.
+    - path: mcp/server.py
+      instructions: |
+        Le serveur MCP expose le pipeline (extract/verify/search/quiz) :
+        vérifier qu'aucune logique métier n'est dupliquée ici.
+    - path: eval/**
+      instructions: |
+        L'éval appelle des LLM réels : vérifier qu'elle n'est jamais
+        déclenchée à chaque commit et que les rapports ne sont pas committés.
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main

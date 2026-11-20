@@ -1,0 +1,46 @@
+name: Qualité
+on:
+  push: { branches: [main] }
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build de l'image API
+        run: docker build -t depute-virtuel-api:ci .
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Gitleaks exécuté via l'image Docker officielle (référence épinglée),
+      # sur toute la plage de commits de la PR (base..head), au-delà des 30
+      # premiers commits que gitleaks-action scanne par défaut.
+      # --redact : ne jamais écrire la valeur d'un secret détecté dans les
+      # journaux CI (CWE-532).
+      - name: Scan des secrets — plage complète de la PR
+        if: github.event_name == 'pull_request'
+        run: >-
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3
+          git /repo --log-opts="-m ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --verbose --redact
+      # Push sur main : en plus du snapshot, scanner la plage de commits du
+      # push pour détecter un secret ajouté puis supprimé dans l'historique.
+      # À la création de branche, github.event.before est une suite de zéros
+      # (aucun commit) : ce scan est ignoré, le snapshot reste exécuté.
+      - name: Scan des secrets — plage du push (push sur main)
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: >-
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3
+          git /repo --log-opts="-m ${{ github.event.before }}..${{ github.sha }}" --verbose --redact
+      - name: Scan des secrets — snapshot du dépôt (push sur main)
+        if: github.event_name == 'push'
+        run: >-
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3
+          dir /repo --verbose --redact
